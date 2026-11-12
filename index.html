@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#3A1E12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Vozes negras" />
+  <title>Cartaz · Vozes negras do Nordeste</title>
+  <meta name="description" content="Preencha o cartaz Vozes negras do Nordeste com textos e imagens e gere o PDF para impressão." />
+  <link rel="icon" type="image/png" href="img/icone-64.png" />
+  <link rel="apple-touch-icon" href="img/icone-180.png" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="topo">
+    <div>
+      <h1>Vozes negras do Nordeste</h1>
+      <p>Preencha os campos, confira o cartaz e clique em <strong>Gerar PDF</strong>.</p>
+    </div>
+    <div class="acoes">
+      <label class="tamanho">
+        Tamanho do PDF
+        <select id="tamanho-pdf">
+          <option value="a4x16">Banner 4 × 4: 16 folhas A4 (≈ 78 × 114 cm)</option>
+          <option value="a3">Prévia em 1 folha A3</option>
+          <option value="a4">Prévia em 1 folha A4</option>
+        </select>
+      </label>
+      <button type="button" id="btn-instalar" class="btn-instalar" hidden>Instalar app</button>
+      <button type="button" id="btn-pdf" class="btn-principal">Gerar PDF</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <!-- ============ FORMULÁRIO ============ -->
+    <form id="form" class="formulario" autocomplete="off" onsubmit="return false">
+      <div class="abas-mobile" role="tablist">
+        <button type="button" class="aba ativa" data-mostrar="form">Preencher</button>
+        <button type="button" class="aba" data-mostrar="preview">Ver cartaz</button>
+      </div>
+
+      <div class="caixa-exemplo">
+        <p>Quer ver um cartaz preenchido? Carregue o exemplo com a poeta <b>Auta de Souza</b> e o poema <b>Fio partido</b>.</p>
+        <button type="button" class="btn" id="btn-exemplo">Ver exemplo: Auta de Souza</button>
+      </div>
+
+      <fieldset class="secao secao-letra" style="--cor:#1F7A8C">
+        <legend>Letra do cartaz</legend>
+        <p class="dica">Escolha uma fonte para todos os textos de uma vez. Depois, se quiser, mude a fonte e o tamanho de cada parte nas seções abaixo.</p>
+        <label>Fonte de todos os textos<select id="fonte-geral"></select></label>
+        <p class="dica">Tamanho <b>Automático</b>: a letra diminui sozinha para o texto caber na caixa.</p>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#B5361F">
+        <legend>O poeta</legend>
+        <div class="campo-imagem" data-img="foto">
+          <span class="rotulo">Foto do poeta <small>(clique, arraste ou cole com Ctrl+V)</small></span>
+          <div class="miniatura" title="Clique ou arraste uma imagem aqui"></div>
+          <div class="botoes-imagem">
+            <button type="button" class="btn escolher">Escolher foto</button><input type="file" class="arquivo" accept="image/*" tabindex="-1" aria-hidden="true" />
+            <button type="button" class="btn btn-claro remover" hidden>Remover</button>
+            <label class="ajuste" hidden><input type="checkbox" class="inteira" /> mostrar imagem inteira</label>
+          </div>
+        </div>
+        <label>Nome do poeta<input type="text" name="nome" maxlength="80" /></label>
+        <label>Estado de origem<input type="text" name="estado" maxlength="60" /></label>
+        <label>Viveu (ano de nascimento e morte)<input type="text" name="viveu" maxlength="60" placeholder="Ex.: 1900 – 1970" /></label>
+        <div class="obras-form">
+          <span class="rotulo-grupo">Principais obras <small>(de 1 a 3; só aparecem no cartaz as que tiverem título ou imagem)</small></span>
+          <div class="obra-form">
+            <label>Obra 1<input type="text" name="obra1" maxlength="80" placeholder="Título da obra 1" /></label>
+            <div class="campo-imagem compacto" data-img="imgobra1">
+              <span class="rotulo">Capa da obra 1</span>
+              <div class="miniatura capa" title="Clique ou arraste uma imagem aqui"></div>
+              <div class="botoes-imagem">
+                <button type="button" class="btn escolher">Escolher imagem</button><input type="file" class="arquivo" accept="image/*" tabindex="-1" aria-hidden="true" />
+                <button type="button" class="btn btn-claro remover" hidden>Remover</button>
+                <label class="ajuste" hidden><input type="checkbox" class="inteira" /> mostrar imagem inteira</label>
+              </div>
+            </div>
+          </div>
+          <div class="obra-form">
+            <label>Obra 2<input type="text" name="obra2" maxlength="80" placeholder="Título da obra 2" /></label>
+            <div class="campo-imagem compacto" data-img="imgobra2">
+              <span class="rotulo">Capa da obra 2</span>
+              <div class="miniatura capa" title="Clique ou arraste uma imagem aqui"></div>
+              <div class="botoes-imagem">
+                <button type="button" class="btn escolher">Escolher imagem</button><input type="file" class="arquivo" accept="image/*" tabindex="-1" aria-hidden="true" />
+                <button type="button" class="btn btn-claro remover" hidden>Remover</button>
+                <label class="ajuste" hidden><input type="checkbox" class="inteira" /> mostrar imagem inteira</label>
+              </div>
+            </div>
+          </div>
+          <div class="obra-form">
+            <label>Obra 3<input type="text" name="obra3" maxlength="80" placeholder="Título da obra 3" /></label>
+            <div class="campo-imagem compacto" data-img="imgobra3">
+              <span class="rotulo">Capa da obra 3</span>
+              <div class="miniatura capa" title="Clique ou arraste uma imagem aqui"></div>
+              <div class="botoes-imagem">
+                <button type="button" class="btn escolher">Escolher imagem</button><input type="file" class="arquivo" accept="image/*" tabindex="-1" aria-hidden="true" />
+                <button type="button" class="btn btn-claro remover" hidden>Remover</button>
+                <label class="ajuste" hidden><input type="checkbox" class="inteira" /> mostrar imagem inteira</label>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="estilo" data-grupo="ficha"><span class="estilo-titulo">Letra da ficha (nome, estado, viveu, obras)</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#2C6A43">
+        <legend>Biografia</legend>
+        <label>Biografia
+          <textarea name="bio" rows="12" placeholder="Onde nasceu, como foi a vida, o contexto histórico e por que o poeta é importante."></textarea>
+        </label>
+        <div class="estilo" data-grupo="bio"><span class="estilo-titulo">Letra da biografia</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+        <div class="campo-imagem" data-img="imgbio">
+          <span class="rotulo">Imagem (capa de livro, mapa, ilustração) <small>(clique, arraste ou cole)</small></span>
+          <div class="miniatura larga" title="Clique ou arraste uma imagem aqui"></div>
+          <div class="botoes-imagem">
+            <button type="button" class="btn escolher">Escolher imagem</button><input type="file" class="arquivo" accept="image/*" tabindex="-1" aria-hidden="true" />
+            <button type="button" class="btn btn-claro remover" hidden>Remover</button>
+            <label class="ajuste" hidden><input type="checkbox" class="inteira" /> mostrar imagem inteira</label>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#1F7A8C">
+        <legend>Representatividade</legend>
+        <label>Por que esse poeta é importante para a representatividade negra? Como a obra dele valoriza a cultura afro-brasileira e enfrenta o racismo?
+          <textarea name="represent" rows="7"></textarea>
+        </label>
+        <div class="estilo" data-grupo="represent"><span class="estilo-titulo">Letra</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#C98A12">
+        <legend>O poema</legend>
+        <label>Título do poema<input type="text" name="titulo" maxlength="100" /></label>
+        <div class="estilo" data-grupo="titulo"><span class="estilo-titulo">Letra do título</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+        <label>Poema (ou um trecho dele)
+          <textarea name="poema" rows="10" placeholder="Escreva ou cole aqui o poema. As quebras de linha serão mantidas."></textarea>
+        </label>
+        <label class="linha">Alinhamento do poema
+          <select name="alinhamento">
+            <option value="left">À esquerda</option>
+            <option value="center">Centralizado</option>
+          </select>
+        </label>
+        <div class="estilo" data-grupo="poema"><span class="estilo-titulo">Letra do poema</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#3A1E12">
+        <legend>Eu lírico</legend>
+        <label>Quem fala no poema? Com quem fala? O que sente, deseja ou denuncia?
+          <textarea name="eulirico" rows="4"></textarea>
+        </label>
+        <div class="estilo" data-grupo="eulirico"><span class="estilo-titulo">Letra</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#B5361F">
+        <legend>Figura de linguagem</legend>
+        <label>Qual figura de linguagem predomina? Mostre um exemplo do poema.
+          <textarea name="figura" rows="4"></textarea>
+        </label>
+        <div class="estilo" data-grupo="figura"><span class="estilo-titulo">Letra</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <fieldset class="secao" style="--cor:#3A1E12">
+        <legend>Integrantes</legend>
+        <p class="dica">Coloque quantos nomes forem necessários. No cartaz eles aparecem um abaixo do outro, em ordem alfabética.</p>
+        <div class="lista-integrantes" id="lista-integrantes"></div>
+        <button type="button" class="btn" id="btn-add-integrante">+ Adicionar integrante</button>
+        <label>Turma<input type="text" name="turma" maxlength="40" /></label>
+        <label>Professores responsáveis <small>(um por linha)</small><textarea name="professores" rows="3"></textarea></label>
+        <div class="estilo" data-grupo="integrantes"><span class="estilo-titulo">Letra</span><label>Fonte<select class="sel-fonte"></select></label><label>Tamanho<select class="sel-tamanho"></select></label></div>
+      </fieldset>
+
+      <div class="rodape-form">
+        <p class="dica">Tudo o que você digita fica salvo neste navegador, mesmo se fechar a página.</p>
+        <button type="button" id="btn-limpar" class="btn btn-claro">Apagar tudo e recomeçar</button>
+      </div>
+    </form>
+
+    <!-- ============ PRÉ-VISUALIZAÇÃO ============ -->
+    <section class="previa" aria-label="Pré-visualização do cartaz">
+      <div class="modos-previa" role="tablist" aria-label="Como ver o cartaz">
+        <button type="button" class="modo ativo" role="tab" aria-selected="true" data-modo="limpo">Banner pronto</button>
+        <button type="button" class="modo" role="tab" aria-selected="false" data-modo="inteiro">Com divisão das folhas</button>
+        <button type="button" class="modo" role="tab" aria-selected="false" data-modo="partes">Impresso em partes</button>
+      </div>
+      <div class="moldura-partes" id="moldura-partes" hidden>
+        <div class="mesa" id="mesa"></div>
+        <p class="dica-partes">Assim saem as 16 folhas da impressora. Recorte a margem branca de cada uma e cole na ordem: linhas A a D de cima para baixo, colunas 1 a 4 da esquerda para a direita.</p>
+      </div>
+      <div class="moldura" id="moldura">
+        <div class="escala" id="escala">
+          <div class="cartaz" id="cartaz">
+            <!-- Cabeçalho fixo -->
+            <div class="t titulo1">Vozes negras</div>
+            <div class="t titulo2">do Nordeste</div>
+            <div class="t subtitulo">Poesia e cordel&nbsp;&nbsp;★&nbsp;&nbsp;Mês da Consciência Negra</div>
+
+            <div class="t legenda" style="left:50mm"><b>Sankofa</b><i>aprender com o passado</i></div>
+            <div class="t legenda" style="left:141.3mm"><b>Adinkrahene</b><i>grandeza e liderança</i></div>
+            <div class="t legenda" style="left:231mm"><b>Akoma</b><i>paciência e amor</i></div>
+            <div class="t legenda" style="left:323mm"><b>Nkyinkyim</b><i>iniciativa e resistência</i></div>
+            <div class="t legenda" style="left:413.8mm"><b>Dwennimmen</b><i>humildade e força</i></div>
+
+            <!-- Divisão das 16 folhas A4 (só na tela, não sai no PDF) -->
+            <div class="grade-folhas" id="grade-folhas" aria-hidden="true"></div>
+
+            <!-- Área de conteúdo (creme): colunas em cima, integrantes embaixo -->
+            <div class="conteudo">
+            <div class="linha-colunas">
+            <!-- Coluna esquerda: as caixas crescem conforme o texto -->
+            <div class="coluna" id="col-esq">
+              <section class="bloco fixo" style="--cor:#B5361F">
+                <div class="aba-titulo">O poeta</div>
+                <div class="caixa-bloco poeta">
+                  <div class="poeta-topo">
+                    <div class="img" data-saida="foto" data-dica="Foto do poeta"></div>
+                    <div class="ficha">
+                      <div class="item-ficha"><div class="rotulo-ficha">Nome</div><div class="campo" data-saida="nome" data-grupo="ficha" data-dica="Nome do poeta" data-max="30" data-min="14"></div></div>
+                      <div class="item-ficha"><div class="rotulo-ficha">Estado</div><div class="campo" data-saida="estado" data-grupo="ficha" data-dica="Estado de origem" data-max="27" data-min="13"></div></div>
+                      <div class="item-ficha"><div class="rotulo-ficha">Viveu</div><div class="campo" data-saida="viveu" data-grupo="ficha" data-dica="Ano de nascimento e morte" data-max="27" data-min="13"></div></div>
+                    </div>
+                  </div>
+                  <div class="obras">
+                    <div class="obras-titulo">Principais obras</div>
+                    <div class="obras-lista">
+                      <figure class="obra">
+                        <div class="img img-obra" data-saida="imgobra1" data-dica="Capa da obra 1"></div>
+                        <div class="campo legenda-obra" data-saida="obra1" data-grupo="ficha" data-dica="Obra 1" data-max="17" data-min="10"></div>
+                      </figure>
+                      <figure class="obra">
+                        <div class="img img-obra" data-saida="imgobra2" data-dica="Capa da obra 2"></div>
+                        <div class="campo legenda-obra" data-saida="obra2" data-grupo="ficha" data-dica="Obra 2" data-max="17" data-min="10"></div>
+                      </figure>
+                      <figure class="obra">
+                        <div class="img img-obra" data-saida="imgobra3" data-dica="Capa da obra 3"></div>
+                        <div class="campo legenda-obra" data-saida="obra3" data-grupo="ficha" data-dica="Obra 3" data-max="17" data-min="10"></div>
+                      </figure>
+                    </div>
+                  </div>
+                </div>
+              </section>
+              <section class="bloco" style="--cor:#2C6A43">
+                <div class="aba-titulo">Biografia</div>
+                <div class="caixa-bloco">
+                  <div class="campo cresce" data-saida="bio" data-grupo="bio" data-dica="Escreva aqui a biografia: onde nasceu, como foi a vida, o contexto histórico e por que o poeta é importante." data-max="24" data-min="11"></div>
+                  <div class="img img-bio" data-saida="imgbio" data-dica="Imagem (capa de livro, mapa, ilustração)" hidden></div>
+                </div>
+              </section>
+              <section class="bloco" style="--cor:#1F7A8C">
+                <div class="aba-titulo">Representatividade</div>
+                <div class="caixa-bloco">
+                  <div class="campo cresce" data-saida="represent" data-grupo="represent" data-dica="Por que esse poeta é importante para a representatividade negra? Como a obra dele valoriza a cultura afro-brasileira e enfrenta o racismo?" data-max="24" data-min="11"></div>
+                </div>
+              </section>
+            </div>
+
+            <!-- Coluna direita -->
+            <div class="coluna" id="col-dir">
+              <section class="bloco" style="--cor:#E2A12B">
+                <div class="aba-titulo" style="color:#3A1E12">O poema</div>
+                <div class="caixa-bloco">
+                  <div class="campo titulo-poema" data-saida="titulo" data-grupo="titulo" data-dica="Título do poema" data-max="26" data-min="14"></div>
+                  <div class="campo cresce" data-saida="poema" data-grupo="poema" data-dica="Escreva ou cole aqui o poema (ou um trecho dele)." data-max="24" data-min="10"></div>
+                </div>
+              </section>
+              <section class="bloco" style="--cor:#3A1E12">
+                <div class="aba-titulo">Eu lírico</div>
+                <div class="caixa-bloco">
+                  <div class="campo cresce" data-saida="eulirico" data-grupo="eulirico" data-dica="Quem fala no poema? Com quem fala? O que sente, deseja ou denuncia?" data-max="22" data-min="10"></div>
+                </div>
+              </section>
+              <section class="bloco" style="--cor:#B5361F">
+                <div class="aba-titulo">Figura de linguagem</div>
+                <div class="caixa-bloco">
+                  <div class="campo cresce" data-saida="figura" data-grupo="figura" data-dica="Qual figura de linguagem predomina? Mostre um exemplo do poema." data-max="22" data-min="10"></div>
+                </div>
+              </section>
+            </div>
+
+            </div>
+            <!-- Faixa de baixo: integrantes (um por linha, em ordem alfabética) e, ao lado, a turma -->
+            <div class="linha-final">
+              <section class="bloco bloco-integrantes" style="--cor:#3A1E12">
+                <div class="aba-titulo">Integrantes</div>
+                <div class="caixa-bloco" id="caixa-integrantes">
+                  <div class="campo integrantes" data-saida="integrantes" data-grupo="integrantes" data-dica="Nomes dos integrantes, um abaixo do outro" data-max="26" data-min="12"></div>
+                </div>
+              </section>
+              <section class="bloco bloco-turma" style="--cor:#B5361F">
+                <div class="aba-titulo">Turma</div>
+                <div class="caixa-bloco" id="caixa-turma">
+                  <div class="campo turma" data-saida="turma" data-grupo="integrantes" data-dica="Turma" data-max="34" data-min="16"></div>
+                  <div class="rotulo-info">Professores responsáveis</div>
+                  <div class="campo profs" data-saida="professores" data-grupo="integrantes" data-dica="Professores" data-max="26" data-min="13"></div>
+                </div>
+              </section>
+            </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <div class="aviso" id="aviso" role="status" aria-live="polite" hidden></div>
+
+  <div class="faixa-preview" id="faixa-preview" hidden>
+    ⚠ Este cartaz está aberto dentro de uma <b>visualização</b> (Drive, Classroom, WhatsApp…), que pode bloquear o PDF.
+    Se o PDF não baixar, <b>baixe o arquivo</b> e abra-o no <b>Chrome</b> ou <b>Edge</b>.
+  </div>
+
+  <div class="dialogo" id="dialogo" hidden>
+    <div class="caixa-dialogo" role="dialog" aria-modal="true" aria-labelledby="dialogo-titulo">
+      <h2 id="dialogo-titulo"></h2>
+      <div class="dialogo-corpo" id="dialogo-corpo"></div>
+      <div class="dialogo-botoes" id="dialogo-botoes"></div>
+    </div>
+  </div>
+
+  <script src="vendor/html2canvas.min.js"></script>
+  <script src="vendor/jspdf.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
