@@ -745,11 +745,10 @@
   window.addEventListener("resize", escalarPartes);
   if (window.ResizeObserver) new ResizeObserver(escalarPartes).observe(molduraPartes);
 
-  function nomeArquivo() {
-    const base = (estado.textos.nome || "cartaz").normalize("NFD").replace(/[̀-ͯ]/g, "")
+  function nomeArquivo(sufixo) {
+    const base = (estado.textos.nome || "cartaz").normalize("NFD").replace(/[\u0300-\u036f]/g, "")
       .replace(/[^a-zA-Z0-9]+/g, "-").replace(/^-|-$/g, "").toLowerCase();
-    const sufixo = selTamanho.value === "a4x16" ? "-16-folhas-A4" : "-" + selTamanho.value;
-    return `vozes-negras-${base || "cartaz"}${sufixo}.pdf`;
+    return `vozes-negras-${base || "cartaz"}-${sufixo}.pdf`;
   }
 
   function camposVazios() {
@@ -761,7 +760,7 @@
     return faltando;
   }
 
-  let ultimoPdfUrl = null;
+  let urlsPdf = [];
 
   // Desenha um elemento num canvas com a largura pedida (em px).
   // Se faltar memória (celulares), tenta de novo com menos resolução.
@@ -805,10 +804,11 @@
     return pdf;
   }
 
-  // PDF do banner: mapa de montagem + 16 folhas A4 com marcas de corte
-  async function pdfDezesseisFolhas(copia, palco) {
+  // Banner 4 x 4: gera DOIS PDFs a partir do mesmo desenho
+  //  - partes: 16 folhas A4 com marcas de corte e a etiqueta da folha (sem instruções)
+  //  - completo: o banner inteiro numa página do tamanho real, de ponta a ponta, sem linhas
+  async function pdfsDoBanner(copia, palco) {
     const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
 
     // faixa = uma linha de 4 folhas (o cartaz inteiro de largura, 1/4 da altura)
     const faixa = document.createElement("div");
@@ -819,75 +819,50 @@
     faixa.appendChild(copia);
 
     // ~150 dpi no tamanho impresso
-    const pxPorMmImpresso = 150 / 25.4;
-    const alvoFaixaPx = Math.round(IMPRESSO_W * GRADE * pxPorMmImpresso);
+    const alvoFaixaPx = Math.round(IMPRESSO_W * GRADE * 150 / 25.4);
 
-    const miniatura = document.createElement("canvas");
-    miniatura.width = 1000;
-    miniatura.height = Math.round(1000 * CARTAZ_H / CARTAZ_W);
-    const ctxMini = miniatura.getContext("2d");
-
-    const folhas = [];
+    const faixas = [], folhas = [];
     for (let l = 0; l < GRADE; l++) {
-      mostrarAviso(`Gerando o PDF… parte ${l + 1} de ${GRADE}`);
+      mostrarAviso(`Gerando os PDFs… parte ${l + 1} de ${GRADE}`);
       copia.style.top = (-PEDACO_H * l) + "mm";
       const canvas = await capturar(faixa, alvoFaixaPx);
-      ctxMini.drawImage(canvas, 0, Math.round(miniatura.height * l / GRADE), miniatura.width, Math.ceil(miniatura.height / GRADE));
+      faixas.push(canvas.toDataURL("image/jpeg", 0.9));
       const pw = canvas.width / GRADE;
       for (let c = 0; c < GRADE; c++) {
         folhas.push({ l, c, img: recorte(canvas, pw * c, 0, pw, canvas.height).toDataURL("image/jpeg", 0.9) });
       }
     }
 
-    // Página 1: mapa de montagem
-    const titulo = "Vozes negras do Nordeste" + (estado.textos.nome ? " – " + estado.textos.nome : "");
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(16); pdf.setTextColor(58, 30, 18);
-    pdf.text("Mapa de montagem do banner (16 folhas A4)", 105, 16, { align: "center" });
-    pdf.setFont("helvetica", "normal"); pdf.setFontSize(10);
-    pdf.text(titulo, 105, 22, { align: "center" });
-    const mapaH = 190, mapaW = mapaH * CARTAZ_W / CARTAZ_H, mapaX = (210 - mapaW) / 2, mapaY = 28;
-    pdf.addImage(miniatura.toDataURL("image/jpeg", 0.85), "JPEG", mapaX, mapaY, mapaW, mapaH, undefined, "FAST");
-    pdf.setDrawColor(31, 122, 140); pdf.setLineWidth(0.4);
-    pdf.rect(mapaX, mapaY, mapaW, mapaH);
-    for (let i = 1; i < GRADE; i++) {
-      pdf.line(mapaX + mapaW * i / GRADE, mapaY, mapaX + mapaW * i / GRADE, mapaY + mapaH);
-      pdf.line(mapaX, mapaY + mapaH * i / GRADE, mapaX + mapaW, mapaY + mapaH * i / GRADE);
-    }
-    pdf.setFont("helvetica", "bold"); pdf.setFontSize(13);
-    for (let l = 0; l < GRADE; l++) for (let c = 0; c < GRADE; c++) {
-      const cx = mapaX + mapaW * c / GRADE + 7.5, cy = mapaY + mapaH * l / GRADE + 5.5;
-      pdf.setFillColor(31, 122, 140); pdf.roundedRect(cx - 6, cy - 4, 12, 8, 1.5, 1.5, "F");
-      pdf.setTextColor(255, 255, 255); pdf.text(nomeFolha(l, c), cx, cy + 1.6, { align: "center" });
-    }
-    pdf.setTextColor(42, 26, 18); pdf.setFont("helvetica", "normal"); pdf.setFontSize(10.5);
-    const tamanhoFinal = `${Math.round(IMPRESSO_W * GRADE / 10)} × ${Math.round(IMPRESSO_H * GRADE / 10)} cm`;
-    const passos = [
-      "1. Imprima as páginas 2 a 17 em papel A4, retrato, em TAMANHO REAL (100%).",
-      "    Desmarque \"Ajustar à página\" na janela de impressão.",
-      "2. Em cada folha, recorte a margem branca seguindo as marcas de corte dos cantos.",
-      "3. Monte na ordem do mapa: linhas A, B, C, D de cima para baixo;",
-      "    colunas 1, 2, 3, 4 da esquerda para a direita (A1 fica no canto de cima, à esquerda).",
-      "4. Cole as folhas por trás com fita adesiva ou numa cartolina/papel pardo.",
-      `Tamanho final do banner: cerca de ${tamanhoFinal}.`,
-    ];
-    passos.forEach((t, i) => pdf.text(t, 18, mapaY + mapaH + 10 + i * 6));
-
-    // Páginas 2 a 17: uma folha para cada pedaço
+    // 1) Partes: uma folha A4 para cada pedaço
+    const partes = new jsPDF({ unit: "mm", format: "a4", orientation: "portrait", compress: true });
     folhas.forEach(({ l, c, img }, i) => {
-      pdf.addPage("a4", "portrait");
-      pdf.addImage(img, "JPEG", MARGEM_X, MARGEM_Y, IMPRESSO_W, IMPRESSO_H, undefined, "FAST");
+      if (i > 0) partes.addPage("a4", "portrait");
+      partes.addImage(img, "JPEG", MARGEM_X, MARGEM_Y, IMPRESSO_W, IMPRESSO_H, undefined, "FAST");
       // marcas de corte nos 4 cantos (fora da imagem)
-      pdf.setDrawColor(120, 120, 120); pdf.setLineWidth(0.2);
+      partes.setDrawColor(120, 120, 120); partes.setLineWidth(0.2);
       const x0 = MARGEM_X, y0 = MARGEM_Y, x1 = MARGEM_X + IMPRESSO_W, y1 = MARGEM_Y + IMPRESSO_H, m = 4.5, g = 0.8;
       [[x0, y0, -1, -1], [x1, y0, 1, -1], [x0, y1, -1, 1], [x1, y1, 1, 1]].forEach(([x, y, dx, dy]) => {
-        pdf.line(x + dx * g, y, x + dx * m, y);
-        pdf.line(x, y + dy * g, x, y + dy * m);
+        partes.line(x + dx * g, y, x + dx * m, y);
+        partes.line(x, y + dy * g, x, y + dy * m);
       });
-      pdf.setFont("helvetica", "normal"); pdf.setFontSize(7.5); pdf.setTextColor(110, 110, 110);
-      pdf.text(`Folha ${nomeFolha(l, c)}  ·  linha ${LINHAS[l]}, coluna ${c + 1}  ·  página ${i + 2} de 17  ·  imprimir em tamanho real (100%)`,
-        105, A4.h - 1.8, { align: "center" });
+      // só a identificação da folha, pequena, na margem
+      partes.setFont("helvetica", "bold"); partes.setFontSize(8); partes.setTextColor(130, 130, 130);
+      partes.text(nomeFolha(l, c), A4.w / 2, A4.h - 1.8, { align: "center" });
     });
-    return pdf;
+
+    // 2) Banner completo: página do tamanho do banner montado, sem margens nem linhas
+    const W = IMPRESSO_W * GRADE, H = IMPRESSO_H * GRADE;
+    const completo = new jsPDF({ unit: "mm", format: [W, H], orientation: "portrait", compress: true });
+    faixas.forEach((img, l) => {
+      // leve sobreposição entre as faixas para não aparecer fresta no visualizador
+      const extra = l < GRADE - 1 ? 0.4 : 0;
+      completo.addImage(img, "JPEG", 0, IMPRESSO_H * l, W, IMPRESSO_H + extra, undefined, "FAST");
+    });
+
+    return [
+      { pdf: partes, nome: nomeArquivo("partes-16-folhas-A4"), rotulo: "Partes para juntar (16 folhas A4)" },
+      { pdf: completo, nome: nomeArquivo("banner-completo"), rotulo: "Banner completo" },
+    ];
   }
 
   function baixarAutomatico(url, nome) {
@@ -925,32 +900,40 @@
       document.body.appendChild(palco);
 
       fatorMemoria = 1;
-      const pdf = selTamanho.value === "a4x16" ? await pdfDezesseisFolhas(copia, palco) : await pdfFolhaUnica(copia);
-      pdf.setProperties({ title: "Vozes negras do Nordeste" + (estado.textos.nome ? " – " + estado.textos.nome : "") });
-
-      const blob = pdf.output("blob");
-      if (ultimoPdfUrl) URL.revokeObjectURL(ultimoPdfUrl);
-      ultimoPdfUrl = URL.createObjectURL(blob);
-      const nome = nomeArquivo();
+      const arquivos = selTamanho.value === "a4x16"
+        ? await pdfsDoBanner(copia, palco)
+        : [{ pdf: await pdfFolhaUnica(copia), nome: nomeArquivo("previa-" + selTamanho.value), rotulo: "Prévia em 1 folha " + selTamanho.value.toUpperCase() }];
+      const titulo = "Vozes negras do Nordeste" + (estado.textos.nome ? " – " + estado.textos.nome : "");
+      urlsPdf.forEach((u) => URL.revokeObjectURL(u));
+      urlsPdf = [];
+      arquivos.forEach((a) => {
+        a.pdf.setProperties({ title: titulo });
+        a.blob = a.pdf.output("blob");
+        a.url = URL.createObjectURL(a.blob);
+        urlsPdf.push(a.url);
+      });
       esconderAviso();
 
       const dl = await downloadsClaude;
       if (dl) {
-        await salvarPeloClaude(dl, blob, nome);
+        await salvarPeloClaude(dl, arquivos);
         return;
       }
-      baixarAutomatico(ultimoPdfUrl, nome);
-
-      abrirDialogo("PDF pronto! ✔",
-        `<p>O download de <b>${escapar(nome)}</b> deve começar sozinho. Se não começar, clique em <b>Baixar PDF</b>.</p>` +
-        (emVisualizacao ? '<p class="nota">⚠ O arquivo está aberto numa visualização, que pode bloquear downloads. Se nada funcionar, baixe o arquivo do cartaz e abra-o no Chrome ou Edge.</p>' : "") +
-        '<p class="nota">No celular, o PDF fica em <b>Downloads</b> ou em <b>Arquivos</b>.</p>',
-        [
-          { texto: "Fechar", valor: null },
-          { texto: "Imprimir / Salvar", acao: imprimir, fecha: true },
-          { texto: "Abrir PDF", href: ultimoPdfUrl, novaAba: true, fecha: false },
-          { texto: "Baixar PDF", href: ultimoPdfUrl, download: nome, principal: true, fecha: false },
-        ]);
+      // baixa os arquivos um depois do outro
+      for (const [i, a] of arquivos.entries()) {
+        if (i) await new Promise((r) => setTimeout(r, 700));
+        baixarAutomatico(a.url, a.nome);
+      }
+      const plural = arquivos.length > 1;
+      abrirDialogo(plural ? "PDFs prontos! ✔" : "PDF pronto! ✔",
+        "<ul>" + arquivos.map((a) => `<li><b>${escapar(a.rotulo)}</b><br><small>${escapar(a.nome)}</small></li>`).join("") + "</ul>" +
+        `<p>${plural ? "Os downloads devem começar sozinhos" : "O download deve começar sozinho"}. Se não começar, use os botões abaixo.</p>` +
+        (plural ? '<p class="nota">Se o navegador perguntar se pode baixar vários arquivos, clique em <b>Permitir</b>.</p>' : "") +
+        (emVisualizacao ? '<p class="nota">⚠ O arquivo está aberto numa visualização, que pode bloquear downloads. Se nada funcionar, abra o app direto no Chrome ou Edge.</p>' : ""),
+        [{ texto: "Fechar", valor: null }].concat(arquivos.map((a, i) => ({
+          texto: plural ? (i === 0 ? "Baixar partes" : "Baixar banner completo") : "Baixar PDF",
+          href: a.url, download: a.nome, principal: i === arquivos.length - 1, fecha: false,
+        }))));
     } catch (e) {
       console.error(e);
       erroPdf(e && e.message ? e.message : String(e));
@@ -961,23 +944,31 @@
     }
   }
 
-  // Salvar pela página publicada (o visualizador pede confirmação ao aluno)
-  async function salvarPeloClaude(dl, blob, nome) {
-    try {
-      await dl.save({ filename: nome, data: blob });
-      abrirDialogo("PDF salvo! ✔",
-        `<p>O arquivo <b>${escapar(nome)}</b> foi salvo.</p><p class="nota">No computador, procure na pasta <b>Downloads</b>. No celular, em <b>Downloads</b> ou <b>Arquivos</b>.</p>`,
-        [{ texto: "Fechar", valor: null, principal: true }]);
-    } catch (e) {
-      const code = e && e.code;
-      if (code === "declined" || code === "rate_limited") {
-        abrirDialogo(code === "declined" ? "Download cancelado" : "Aguarde um instante",
-          "<p>O PDF já está pronto. Clique em <b>Baixar PDF</b> para salvar.</p>",
-          [{ texto: "Fechar", valor: null }, { texto: "Baixar PDF", principal: true, acao: () => salvarPeloClaude(dl, blob, nome) }]);
-      } else {
-        erroPdf("Este visualizador não permitiu salvar o arquivo (" + (code || "erro") + "). Baixe o arquivo do app e abra-o no Chrome ou Edge.");
+  // Salvar pela página publicada no claude.ai (o visualizador pede confirmação de cada arquivo)
+  async function salvarPeloClaude(dl, arquivos) {
+    const faltam = [];
+    for (const a of arquivos) {
+      try {
+        await dl.save({ filename: a.nome, data: a.blob });
+      } catch (e) {
+        const code = e && e.code;
+        if (code === "declined" || code === "rate_limited") { faltam.push(a); continue; }
+        erroPdf("Este visualizador não permitiu salvar o arquivo (" + (code || "erro") + "). Abra o app direto no Chrome ou Edge.");
+        return;
       }
     }
+    if (!faltam.length) {
+      abrirDialogo(arquivos.length > 1 ? "PDFs salvos! ✔" : "PDF salvo! ✔",
+        "<ul>" + arquivos.map((a) => `<li><b>${escapar(a.rotulo)}</b><br><small>${escapar(a.nome)}</small></li>`).join("") + "</ul>" +
+        '<p class="nota">No computador, procure na pasta <b>Downloads</b>. No celular, em <b>Downloads</b> ou <b>Arquivos</b>.</p>',
+        [{ texto: "Fechar", valor: null, principal: true }]);
+      return;
+    }
+    abrirDialogo("Falta salvar",
+      "<p>Estes arquivos já estão prontos, mas não foram salvos:</p><ul>" + faltam.map((a) => `<li>${escapar(a.rotulo)}</li>`).join("") + "</ul>",
+      [{ texto: "Fechar", valor: null }].concat(faltam.map((a, i) => ({
+        texto: "Salvar " + a.rotulo.toLowerCase(), principal: i === faltam.length - 1, acao: () => salvarPeloClaude(dl, [a]),
+      }))));
   }
 
   function imprimir() {
