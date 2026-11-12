@@ -35,28 +35,6 @@
 
   // Preenchidos automaticamente (podem ser trocados no formulário)
   const TEXTOS_PADRAO = { turma: "9º Ano E", professores: "Lucas Silva\nRonaldo Mendes\nLuzia Reinaldo" };
-  // Cartaz de exemplo para mostrar aos alunos (as imagens são colocadas à mão).
-  // Poema: "Fio partido", de Auta de Souza, em Horto (domínio público).
-  const EXEMPLO = {
-    "textos": {
-      "nome": "Auta de Souza",
-      "estado": "Rio Grande do Norte (Macaíba)",
-      "viveu": "1876 – 1901",
-      "obra1": "Horto (1900)",
-      "obra2": "Nunca mais (poema)",
-      "obra3": "Súplica (poema)",
-      "bio": "Auta de Souza nasceu em Macaíba, no Rio Grande do Norte, em 12 de setembro de 1876. Perdeu a mãe e o pai ainda criança e foi criada pela avó materna. Estudou em um colégio de freiras francesas no Recife, onde aprendeu francês e teve contato com a literatura. Ainda adolescente, descobriu que tinha tuberculose e precisou deixar os estudos. Publicou poemas em jornais e revistas e, em 1900, lançou seu único livro, Horto, com prefácio de Olavo Bilac. Morreu em Natal, em 7 de fevereiro de 1901, com apenas 24 anos.",
-      "represent": "Auta de Souza foi uma mulher negra que conquistou espaço na literatura brasileira no fim do século XIX, poucos anos depois da abolição da escravidão (1888), numa época de muito racismo e em que poucas mulheres conseguiam publicar livros. Seu livro Horto foi elogiado por Olavo Bilac, um dos poetas mais famosos do país, e ganhou várias edições. Hoje ela é lembrada como uma das primeiras grandes poetas negras do Brasil. Sua história mostra que a voz de mulheres negras sempre fez parte da nossa literatura, mesmo quando foi pouco reconhecida.",
-      "titulo": "Fio partido",
-      "poema": "Fugir à mágoa terrena\nE ao sonho, que faz sofrer,\nDeixar o mundo sem pena\nSerá morrer?\n\nFugir neste anseio infindo\nÀ treva do anoitecer,\nBuscar a aurora sorrindo\nSerá morrer?\n\nE ao grito que a dor arranca\nE o coração faz tremer,\nVoar uma pomba branca\nSerá morrer?\n\nII\n\nLá vai a pomba voando\nLivre, através dos espaços...\nSacode as asas cantando:\n\"Quebrei meus laços!\"\n\nAqui na amplidão liberta,\nQuem pode deter-me os passos?\nDeixei a prisão deserta,\nQuebrei meus laços!\n\nJesus, este vôo infindo\nHá de amparar-me nos braços\nEnquanto eu direi sorrindo:\nQuebrei meus laços!\n\nJaneiro, 1901",
-      "eulirico": "O eu lírico é uma voz que sofre com as dores do mundo e pensa na morte. Na parte I, ele pergunta se fugir da mágoa, do sofrimento e da escuridão seria morrer. Na parte II, a alma aparece como uma pomba branca que voa livre e canta \"Quebrei meus laços!\", entregando-se a Jesus. A morte é vista com fé, como libertação. O poema foi escrito em janeiro de 1901, um mês antes da morte da poeta.",
-      "figura": "Metáfora: a alma é representada como \"uma pomba branca\" que voa e se liberta (\"Quebrei meus laços!\"). Repetição (refrão): a pergunta \"Será morrer?\" fecha cada estrofe da parte I, e \"Quebrei meus laços!\" fecha cada estrofe da parte II. Anáfora: a palavra \"Fugir\" abre as duas primeiras estrofes."
-    },
-    "integrantes": [
-      "Exemplo preparado pelos professores"
-    ],
-    "alinhamento": "center"
-  };
   const estadoInicial = () => ({ textos: { ...TEXTOS_PADRAO }, integrantes: [""], imagens: {}, inteira: {}, alinhamento: "left", estilos: {} });
   let estado = estadoInicial();
   let modoPrevia = "limpo"; // "limpo" (sem linhas), "inteiro" (com a divisão das folhas) ou "partes"
@@ -540,25 +518,6 @@
       atualizarTexto("poema");
       salvar();
     }
-  });
-
-  document.getElementById("btn-exemplo").addEventListener("click", async () => {
-    const ok = await confirmar("Ver o exemplo da Auta de Souza?",
-      "<p>O cartaz será preenchido com o exemplo da poeta <b>Auta de Souza</b> e o poema <b>Fio partido</b>.</p>" +
-      "<p>O que já estiver preenchido neste navegador (textos e imagens) será substituído.</p>",
-      "Carregar exemplo", "Cancelar");
-    if (!ok) return;
-    estado = estadoInicial();
-    estado.textos = { ...estado.textos, ...EXEMPLO.textos };
-    estado.integrantes = [...EXEMPLO.integrantes];
-    estado.alinhamento = EXEMPLO.alinhamento;
-    try { IMAGENS.forEach((n) => localStorage.removeItem(CHAVE + "-img-" + n)); } catch (_) {}
-    BD.limpar().catch(() => {});
-    salvar();
-    preencherFormulario();
-    atualizarTudo();
-    window.scrollTo({ top: 0 });
-    mostrarAviso("Exemplo carregado! Agora coloque as imagens: foto da poeta e capas das obras.", 6000);
   });
 
   document.getElementById("btn-limpar").addEventListener("click", async () => {

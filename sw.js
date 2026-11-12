@@ -1,6 +1,6 @@
 // Gerado por gerar-arquivo-unico.py a partir de ferramentas/sw-modelo.js — não edite sw.js à mão.
 // Guarda os arquivos do app no aparelho: abre rápido e funciona sem internet.
-const CACHE = "cartaz-vozes-negras-747546184b";
+const CACHE = "cartaz-vozes-negras-6d9a7b1201";
 const ARQUIVOS = [
   "./",
   "index.html",

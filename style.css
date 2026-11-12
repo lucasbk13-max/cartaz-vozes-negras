@@ -148,14 +148,6 @@ body {
 .campo-imagem.compacto .rotulo { font-size: 14px; font-weight: 400; }
 .miniatura.capa { width: 56px; height: 76px; }
 
-.caixa-exemplo {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px;
-  padding: 14px 16px; border-radius: 10px;
-  background: #FFF6E3; border: 2px dashed var(--amarelo);
-}
-.caixa-exemplo p { margin: 0; flex: 1 1 240px; font-size: 15px; }
-.caixa-exemplo .btn { --cor: var(--marrom); }
-
 .rodape-form { display: flex; flex-direction: column; gap: 8px; align-items: flex-start; padding-bottom: 24px; }
 .dica { margin: 0; font-size: 14px; color: #8A6A55; }
 
